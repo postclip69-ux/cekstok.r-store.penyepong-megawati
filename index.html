@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sultan Stock Monitor</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #000000;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1a1a40 0%, transparent 70%),
+                linear-gradient(180deg, rgba(0,0,0,0) 0%, #000000 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Glass Luxury Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Loading Bar */
+        .timer-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            width: 0%;
+            z-index: 999;
+            box-shadow: 0 0 10px #00c6ff;
+        }
+
+        .animate-loader {
+            transition: width 3s linear;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="progress" class="timer-bar"></div>
+
+    <div class="max-w-6xl mx-auto px-4 py-12">
+        
+        <div class="text-center mb-12 relative">
+            <div class="inline-block px-4 py-1 rounded-full border border-blue-500/30 bg-blue-900/20 text-blue-400 text-xs font-bold tracking-widest uppercase mb-4 backdrop-blur-md">
+                <i class="fa-solid fa-satellite-dish mr-2 animate-pulse"></i> Live Connection
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-slate-500" style="font-family: 'Space Grotesk'">
+                STOCK <span class="text-blue-500">MASTER</span>
+            </h1>
+            <p class="text-slate-400 text-sm" id="status-text">Menghubungkan ke satelit...</p>
+        </div>
+
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-blue-500"></i>
+                <p>Mengambil Data Terbaru...</p>
+            </div>
+        </div>
+
+        <footer class="mt-16 text-center text-slate-600 text-xs">
+            Serverless Vercel Edition • Auto-Refresh Enabled
+        </footer>
+    </div>
+
+    <script>
+        // Gunakan Proxy Publik untuk menembus CORS di Vercel
+        // Jika error, coba ganti proxy url nya
+        const targetUrl = 'https://panel.khfy-store.com/api_v3/cek_stock_akrab';
+        const proxyUrl = 'https://api.allorigins.win/raw?url='; 
+        const finalUrl = proxyUrl + encodeURIComponent(targetUrl);
+
+        const grid = document.getElementById('grid');
+        const progressBar = document.getElementById('progress');
+        const statusText = document.getElementById('status-text');
+
+        function startTimer() {
+            progressBar.classList.remove('animate-loader');
+            progressBar.style.width = '0%';
+            
+            // Force reflow
+            void progressBar.offsetWidth;
+
+            progressBar.classList.add('animate-loader');
+            progressBar.style.width = '100%';
+        }
+
+        async function fetchData() {
+            startTimer();
+            try {
+                // Tambahkan timestamp agar tidak dicache browser
+                const res = await fetch(finalUrl + '&t=' + new Date().getTime());
+                const json = await res.json();
+
+                if (json.ok && json.data) {
+                    renderData(json.data);
+                    statusText.innerHTML = `<span class="text-emerald-400"><i class="fa-solid fa-check"></i> Updated: ${new Date().toLocaleTimeString()}</span>`;
+                }
+            } catch (err) {
+                console.error(err);
+                statusText.innerHTML = `<span class="text-red-500">Gagal terhubung. Retrying...</span>`;
+            }
+        }
+
+        function renderData(items) {
+            let html = '';
+            items.forEach((item, index) => {
+                const stock = parseInt(item.sisa_slot);
+                const isAvail = stock > 0;
+                
+                // Styling Logic
+                const color = isAvail ? 'text-emerald-400' : 'text-rose-500';
+                const border = isAvail ? 'border-emerald-500/30' : 'border-rose-500/20';
+                const bgIcon = isAvail ? 'bg-emerald-500/20' : 'bg-rose-500/10';
+                const glow = isAvail ? 'shadow-[0_0_20px_rgba(16,185,129,0.2)]' : '';
+                const statusLabel = isAvail ? 'READY STOCK' : 'SOLD OUT';
+                const delay = index * 100;
+
+                html += `
+                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group fade-in" style="animation-delay: ${delay}ms">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <p class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-1">${item.type}</p>
+                            <h3 class="text-2xl font-bold text-white group-hover:text-blue-300 transition-colors">${item.nama}</h3>
+                        </div>
+                        <div class="h-10 w-10 rounded-lg ${bgIcon} flex items-center justify-center border border-white/5 backdrop-blur-md">
+                            <i class="fa-solid ${isAvail ? 'fa-box-open text-emerald-400' : 'fa-lock text-rose-500'}"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent my-4"></div>
+
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <p class="text-xs text-slate-400 mb-1">Available Slot</p>
+                            <span class="text-4xl font-bold ${color}" style="font-family: 'Space Grotesk'">${stock}</span>
+                        </div>
+                        <div class="px-3 py-1 rounded border ${border} ${bgIcon} ${color} text-[10px] font-bold tracking-wider ${glow}">
+                            ${statusLabel}
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        // Init
+        fetchData();
+        setInterval(fetchData, 3000); // 3 Detik
+
+    </script>
+</body>
+</html>
