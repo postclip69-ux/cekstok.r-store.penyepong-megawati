@@ -6,22 +6,18 @@
     <title>R-StoreId</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            /* Background biru terang polos sesuai gambar dari abang */
             background-color: #0000FF; 
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
         }
 
-        /* Desain Kartu Solid (Putih Polos, Tanpa Kaca) */
         .solid-card {
             background-color: #ffffff;
             border-radius: 0.75rem;
@@ -34,7 +30,6 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -47,11 +42,6 @@
     <div class="max-w-6xl mx-auto px-4 py-10 relative z-10">
         
         <div class="text-center mb-10">
-            <div class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-[10px] font-bold tracking-[0.2em] uppercase mb-4">
-                <span class="w-1.5 h-1.5 rounded-full bg-white mr-2 animate-pulse"></span> 
-                AKRAB XLA
-            </div>
-            
             <h1 class="text-4xl md:text-7xl font-bold mb-1 tracking-tight" style="font-family: 'Space Grotesk'">
                 <span class="text-white">R - STORE</span>
             </h1>
@@ -63,10 +53,37 @@
             <p class="text-white text-xs font-light" id="status-text">Menunggu sambungan server...</p>
         </div>
 
-        <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
-            <div class="col-span-full flex flex-col items-center justify-center py-24 text-white">
-                <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i>
-                <p class="font-mono text-[10px] tracking-widest uppercase">Sabar bang, lagi ambil data stok sebentar...</p>
+        <div class="mb-12">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-px bg-white/30 flex-1"></div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-[10px] font-bold tracking-[0.2em] uppercase">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white mr-2 animate-pulse"></span> 
+                    AKRAB XLA
+                </span>
+                <div class="h-px bg-white/30 flex-1"></div>
+            </div>
+            
+            <div id="grid-xla" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                <div class="col-span-full text-center py-10 text-white/50 text-xs tracking-widest uppercase font-mono loading-indicator">
+                    <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2"></i><br>Memuat XLA...
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-px bg-white/30 flex-1"></div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-[10px] font-bold tracking-[0.2em] uppercase">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white mr-2 animate-pulse"></span> 
+                    AKRAB XDA
+                </span>
+                <div class="h-px bg-white/30 flex-1"></div>
+            </div>
+            
+            <div id="grid-xda" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                <div class="col-span-full text-center py-10 text-white/50 text-xs tracking-widest uppercase font-mono loading-indicator">
+                    <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2"></i><br>Memuat XDA...
+                </div>
             </div>
         </div>
 
@@ -77,11 +94,7 @@
 
     <script>
         const apiUrl = '/api/proxy'; 
-
-        const grid = document.getElementById('grid');
         const statusText = document.getElementById('status-text');
-
-        let previousData = {}; 
 
         async function fetchData() {
             try {
@@ -90,10 +103,12 @@
                 
                 const json = await res.json();
 
-                if (json.ok && json.data) {
-                    renderData(json.data);
+                if (json.ok) {
+                    // Render masing-masing data ke grid yang berbeda
+                    renderData(json.xla, 'grid-xla');
+                    renderData(json.xda, 'grid-xda');
+                    
                     const time = new Date().toLocaleTimeString('id-ID');
-                    // Update teks waktu refresh tanpa loading bar
                     statusText.innerHTML = `<span class="text-white font-medium text-xs"><i class="fa-solid fa-wifi mr-1"></i>Updated: ${time}</span>`;
                 }
             } catch (err) {
@@ -102,25 +117,33 @@
             }
         }
 
-        function renderData(items) {
-            const isFirstRender = grid.querySelector('.fa-circle-notch') !== null || grid.children.length === 0;
+        function renderData(items, targetGridId) {
+            const grid = document.getElementById(targetGridId);
+            const isFirstRender = grid.querySelector('.loading-indicator') !== null;
 
             if (isFirstRender) {
                 grid.innerHTML = ''; 
+            }
+
+            if (!items || items.length === 0) {
+                if (grid.innerHTML === '') {
+                    grid.innerHTML = `<div class="col-span-full text-center py-4 text-white/50 text-xs tracking-widest uppercase">Kosong</div>`;
+                }
+                return;
             }
 
             items.forEach((item, index) => {
                 const stock = parseInt(item.sisa_slot);
                 const isAvail = stock > 0;
                 
-                const safeType = item.type.replace(/\s+/g, '-');
-                const cardId = `card-${safeType}`;
-                const stockId = `stock-${safeType}`;
-                const statusId = `status-${safeType}`;
-                const iconId = `icon-${safeType}`;
-                const iconWrapperId = `icon-wrap-${safeType}`;
+                // PENTING: Pakai item.nama sebagai ID unik supaya tidak numpuk
+                const safeId = item.nama.replace(/\s+/g, '-');
+                const cardId = `card-${targetGridId}-${safeId}`;
+                const stockId = `stock-${targetGridId}-${safeId}`;
+                const statusId = `status-${targetGridId}-${safeId}`;
+                const iconId = `icon-${targetGridId}-${safeId}`;
+                const iconWrapperId = `icon-wrap-${targetGridId}-${safeId}`;
 
-                // Warna disesuaikan untuk background kartu putih polos
                 const color = isAvail ? 'text-emerald-600' : 'text-rose-600';
                 const bgIcon = isAvail ? 'bg-emerald-100 border-emerald-200' : 'bg-rose-100 border-rose-200';
                 const iconClass = isAvail ? 'fa-box-open' : 'fa-lock';
@@ -158,7 +181,7 @@
                         
                         <div class="flex justify-between items-start mb-3">
                             <div class="overflow-hidden">
-                                <p class="text-[9px] font-bold tracking-widest text-slate-500 uppercase mb-1 font-mono truncate">${item.type}</p>
+                                <p class="text-[9px] font-bold tracking-widest text-slate-500 uppercase mb-1 font-mono truncate">${item.type || 'DATA'}</p>
                                 <h3 class="text-sm md:text-xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate" title="${item.nama}">${item.nama}</h3>
                             </div>
                             <div id="${iconWrapperId}" class="h-8 w-8 min-w-[2rem] rounded-md ${bgIcon} border flex items-center justify-center ml-2">
@@ -187,7 +210,6 @@
         }
 
         fetchData();
-        // Auto refresh diubah jadi 1 detik (1000 milidetik)
         setInterval(fetchData, 1000); 
     </script>
 </body>
