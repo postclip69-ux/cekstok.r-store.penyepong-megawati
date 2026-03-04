@@ -133,18 +133,12 @@
 
                 if (json.ok) {
                     
-                    // === FITUR URUTAN (SORTING) DITAMBAHKAN DI SINI ===
-                    
-                    // Urutkan data XLA (Opsional, jaga-jaga kalau server ngirim acak juga)
-                    if (json.xla && Array.isArray(json.xla)) {
-                        json.xla.sort((a, b) => a.nama.localeCompare(b.nama, undefined, {numeric: true}));
-                    }
-                    
+                    // === FITUR URUTAN (SORTING) KHUSUS XDA AJA ===
                     // Urutkan data XDA sesuai angka (XDA13, XDA19, dst)
                     if (json.xda && Array.isArray(json.xda)) {
                         json.xda.sort((a, b) => a.nama.localeCompare(b.nama, undefined, {numeric: true}));
                     }
-
+                    // XLA dibiarkan sesuai urutan asli dari server KHFY
                     // ==================================================
 
                     // Render data terpisah ke grid masing-masing
