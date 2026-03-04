@@ -132,6 +132,21 @@
                 const json = await res.json();
 
                 if (json.ok) {
+                    
+                    // === FITUR URUTAN (SORTING) DITAMBAHKAN DI SINI ===
+                    
+                    // Urutkan data XLA (Opsional, jaga-jaga kalau server ngirim acak juga)
+                    if (json.xla && Array.isArray(json.xla)) {
+                        json.xla.sort((a, b) => a.nama.localeCompare(b.nama, undefined, {numeric: true}));
+                    }
+                    
+                    // Urutkan data XDA sesuai angka (XDA13, XDA19, dst)
+                    if (json.xda && Array.isArray(json.xda)) {
+                        json.xda.sort((a, b) => a.nama.localeCompare(b.nama, undefined, {numeric: true}));
+                    }
+
+                    // ==================================================
+
                     // Render data terpisah ke grid masing-masing
                     renderData(json.xla, 'grid-xla');
                     renderData(json.xda, 'grid-xda');
