@@ -34,21 +34,6 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
-        /* Loading Bar */
-        .timer-bar {
-            position: fixed;
-            top: 0; left: 0;
-            height: 3px;
-            background: #ffffff;
-            width: 0%;
-            z-index: 999;
-            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.5);
-        }
-
-        .animate-loader {
-            transition: width 3s linear;
-        }
-
         /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -58,8 +43,6 @@
     </style>
 </head>
 <body class="antialiased selection:bg-white selection:text-blue-600">
-
-    <div id="progress" class="timer-bar"></div>
 
     <div class="max-w-6xl mx-auto px-4 py-10 relative z-10">
         
@@ -96,21 +79,11 @@
         const apiUrl = '/api/proxy'; 
 
         const grid = document.getElementById('grid');
-        const progressBar = document.getElementById('progress');
         const statusText = document.getElementById('status-text');
 
         let previousData = {}; 
 
-        function startTimer() {
-            progressBar.classList.remove('animate-loader');
-            progressBar.style.width = '0%';
-            void progressBar.offsetWidth; 
-            progressBar.classList.add('animate-loader');
-            progressBar.style.width = '100%';
-        }
-
         async function fetchData() {
-            startTimer();
             try {
                 const res = await fetch(apiUrl + '?t=' + new Date().getTime());
                 if (!res.ok) throw new Error("Server error");
@@ -120,6 +93,7 @@
                 if (json.ok && json.data) {
                     renderData(json.data);
                     const time = new Date().toLocaleTimeString('id-ID');
+                    // Update teks waktu refresh tanpa loading bar
                     statusText.innerHTML = `<span class="text-white font-medium text-xs"><i class="fa-solid fa-wifi mr-1"></i>Updated: ${time}</span>`;
                 }
             } catch (err) {
@@ -213,6 +187,7 @@
         }
 
         fetchData();
+        // Auto refresh diubah jadi 1 detik (1000 milidetik)
         setInterval(fetchData, 1000); 
     </script>
 </body>
