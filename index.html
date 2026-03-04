@@ -34,14 +34,14 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
 <body class="antialiased selection:bg-white selection:text-blue-600">
 
     <div class="max-w-6xl mx-auto px-4 py-10 relative z-10">
         
-        <div class="text-center mb-10">
+        <div class="text-center mb-8">
             <h1 class="text-4xl md:text-7xl font-bold mb-1 tracking-tight" style="font-family: 'Space Grotesk'">
                 <span class="text-white">R - STORE</span>
             </h1>
@@ -53,16 +53,16 @@
             <p class="text-white text-xs font-light" id="status-text">Menunggu sambungan server...</p>
         </div>
 
-        <div class="mb-12">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="h-px bg-white/30 flex-1"></div>
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-[10px] font-bold tracking-[0.2em] uppercase">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white mr-2 animate-pulse"></span> 
-                    AKRAB XLA
-                </span>
-                <div class="h-px bg-white/30 flex-1"></div>
-            </div>
-            
+        <div class="flex justify-center gap-3 mb-8">
+            <button id="btn-xla" onclick="switchTab('xla')" class="px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 bg-white text-blue-600 shadow-lg flex items-center gap-2">
+                <span id="dot-xla" class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> AKRAB XLA
+            </button>
+            <button id="btn-xda" onclick="switchTab('xda')" class="px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 bg-white/20 text-white border border-white/30 hover:bg-white/30 flex items-center gap-2">
+                <span id="dot-xda" class="w-2 h-2 rounded-full bg-transparent"></span> AKRAB XDA
+            </button>
+        </div>
+
+        <div id="container-xla" class="block fade-in">
             <div id="grid-xla" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
                 <div class="col-span-full text-center py-10 text-white/50 text-xs tracking-widest uppercase font-mono loading-indicator">
                     <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2"></i><br>Memuat XLA...
@@ -70,16 +70,7 @@
             </div>
         </div>
 
-        <div class="mb-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="h-px bg-white/30 flex-1"></div>
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-[10px] font-bold tracking-[0.2em] uppercase">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white mr-2 animate-pulse"></span> 
-                    AKRAB XDA
-                </span>
-                <div class="h-px bg-white/30 flex-1"></div>
-            </div>
-            
+        <div id="container-xda" class="hidden fade-in">
             <div id="grid-xda" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
                 <div class="col-span-full text-center py-10 text-white/50 text-xs tracking-widest uppercase font-mono loading-indicator">
                     <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2"></i><br>Memuat XDA...
@@ -96,6 +87,46 @@
         const apiUrl = '/api/proxy'; 
         const statusText = document.getElementById('status-text');
 
+        // Fungsi untuk ganti tab
+        function switchTab(tab) {
+            const btnXla = document.getElementById('btn-xla');
+            const btnXda = document.getElementById('btn-xda');
+            const dotXla = document.getElementById('dot-xla');
+            const dotXda = document.getElementById('dot-xda');
+            const containerXla = document.getElementById('container-xla');
+            const containerXda = document.getElementById('container-xda');
+
+            if (tab === 'xla') {
+                // Tampilkan XLA, sembunyikan XDA
+                containerXla.classList.remove('hidden');
+                containerXla.classList.add('block');
+                containerXda.classList.remove('block');
+                containerXda.classList.add('hidden');
+
+                // Style Tombol Aktif XLA
+                btnXla.className = 'px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 bg-white text-blue-600 shadow-lg flex items-center gap-2';
+                dotXla.className = 'w-2 h-2 rounded-full bg-blue-500 animate-pulse';
+                
+                // Style Tombol Non-aktif XDA
+                btnXda.className = 'px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 bg-white/20 text-white border border-white/30 hover:bg-white/30 flex items-center gap-2';
+                dotXda.className = 'w-2 h-2 rounded-full bg-transparent';
+            } else {
+                // Tampilkan XDA, sembunyikan XLA
+                containerXda.classList.remove('hidden');
+                containerXda.classList.add('block');
+                containerXla.classList.remove('block');
+                containerXla.classList.add('hidden');
+
+                // Style Tombol Aktif XDA
+                btnXda.className = 'px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 bg-white text-blue-600 shadow-lg flex items-center gap-2';
+                dotXda.className = 'w-2 h-2 rounded-full bg-blue-500 animate-pulse';
+
+                // Style Tombol Non-aktif XLA
+                btnXla.className = 'px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 bg-white/20 text-white border border-white/30 hover:bg-white/30 flex items-center gap-2';
+                dotXla.className = 'w-2 h-2 rounded-full bg-transparent';
+            }
+        }
+
         async function fetchData() {
             try {
                 const res = await fetch(apiUrl + '?t=' + new Date().getTime());
@@ -104,7 +135,6 @@
                 const json = await res.json();
 
                 if (json.ok) {
-                    // Render masing-masing data ke grid yang berbeda
                     renderData(json.xla, 'grid-xla');
                     renderData(json.xda, 'grid-xda');
                     
@@ -136,7 +166,6 @@
                 const stock = parseInt(item.sisa_slot);
                 const isAvail = stock > 0;
                 
-                // PENTING: Pakai item.nama sebagai ID unik supaya tidak numpuk
                 const safeId = item.nama.replace(/\s+/g, '-');
                 const cardId = `card-${targetGridId}-${safeId}`;
                 const stockId = `stock-${targetGridId}-${safeId}`;
