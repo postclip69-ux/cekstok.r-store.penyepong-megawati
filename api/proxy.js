@@ -106,20 +106,48 @@ export default async function handler(req, res) {
         }
 
         // ==========================
-        // XDA
-        // ==========================
+// DETAIL AREA XDA
+// ==========================
 
-        let xdaData = [];
+const detailMapXda = {};
 
-        if (Array.isArray(dataXda)) {
+if (productData.ok && Array.isArray(productData.data)) {
 
-            xdaData = dataXda.map(item => ({
-                type: 'Reguler',
-                nama: item.config,
-                sisa_slot: item.count.toString()
-            }));
+    productData.data
+        .filter(item => item.kode_produk.startsWith('XDA'))
+        .forEach(item => {
 
-        }
+            detailMapXda[item.kode_produk] =
+                parseArea(item.deskripsi);
+
+        });
+
+}
+
+// ==========================
+// XDA
+// ==========================
+
+let xdaData = [];
+
+if (Array.isArray(dataXda)) {
+
+    xdaData = dataXda.map(item => ({
+
+        type: 'Reguler',
+
+        nama: item.config,
+
+        sisa_slot: item.count.toString(),
+
+        area1: detailMapXda[item.config]?.area1 || '',
+        area2: detailMapXda[item.config]?.area2 || '',
+        area3: detailMapXda[item.config]?.area3 || '',
+        area4: detailMapXda[item.config]?.area4 || ''
+
+    }));
+
+            }
 
         res.status(200).json({
             ok: true,
