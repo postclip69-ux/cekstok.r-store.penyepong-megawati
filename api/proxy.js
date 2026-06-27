@@ -101,6 +101,13 @@ export default async function handler(req, res) {
                 area3: detailMap[item.type]?.area3 || '',
                 area4: detailMap[item.type]?.area4 || ''
 
+                // Perbaikan data yang kosong dari KHFY
+detailMapXda['XDA76'] = {
+    area1: '76 GB',
+    area2: '78 GB',
+    area3: '83 GB',
+    area4: '93 GB'
+};
             }));
 
         }
@@ -119,6 +126,7 @@ if (productData.ok && Array.isArray(productData.data)) {
 
             detailMapXda[item.kode_produk] =
                 parseArea(item.deskripsi);
+            
 
         });
 
