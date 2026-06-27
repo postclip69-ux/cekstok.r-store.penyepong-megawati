@@ -213,33 +213,81 @@
                     const delay = index * 50;
                     
                     const html = `
-                    <div id="${cardId}" class="solid-card p-4 relative overflow-hidden group fade-in flex flex-col justify-between h-full" style="animation-delay: ${delay}ms">
-                        
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="overflow-hidden">
-                                <p class="text-[9px] font-bold tracking-widest text-slate-500 uppercase mb-1 font-mono truncate">${item.type || 'DATA'}</p>
-                                <h3 class="text-sm md:text-xl font-bold text-slate-800 group-hover:text-blue-800 transition-colors truncate" title="${item.nama}">${item.nama}</h3>
-                            </div>
-                            <div id="${iconWrapperId}" class="h-8 w-8 min-w-[2rem] rounded-md ${bgIcon} border flex items-center justify-center ml-2">
-                                <i id="${iconId}" class="fa-solid ${iconClass} ${color} text-xs"></i>
-                            </div>
-                        </div>
-                        
-                        <div class="h-px w-full bg-slate-200 my-2"></div>
+<div id="${cardId}" class="solid-card p-4 relative overflow-hidden group fade-in flex flex-col justify-between h-full" style="animation-delay: ${delay}ms">
 
-                        <div class="flex items-end justify-between gap-1">
-                            <div>
-                                <p class="text-[10px] text-slate-500 mb-0.5 font-medium">Stok</p>
-                                <div class="flex items-baseline">
-                                    <span id="${stockId}" class="text-2xl md:text-4xl font-bold ${color}" style="font-family: 'Space Grotesk'">${stock}</span>
-                                </div>
-                            </div>
-                            <div id="${statusId}" class="px-2 py-1 rounded text-[9px] font-bold tracking-wider ${badge}">
-                                ${statusLabel}
-                            </div>
-                        </div>
-                    </div>
-                    `;
+    <div>
+
+        <div class="flex justify-between items-start mb-3">
+
+            <div class="overflow-hidden">
+                <p class="text-[9px] font-bold tracking-widest text-slate-500 uppercase mb-1 font-mono truncate">
+                    ${item.type || 'DATA'}
+                </p>
+
+                <h3
+                    class="text-sm md:text-xl font-bold text-slate-800 group-hover:text-blue-800 transition-colors truncate"
+                    title="${item.nama}"
+                >
+                    ${item.nama}
+                </h3>
+            </div>
+
+            <div
+                id="${iconWrapperId}"
+                class="h-8 w-8 min-w-[2rem] rounded-md ${bgIcon} border flex items-center justify-center ml-2"
+            >
+                <i
+                    id="${iconId}"
+                    class="fa-solid ${iconClass} ${color} text-xs"
+                ></i>
+            </div>
+
+        </div>
+
+        <div class="h-px w-full bg-slate-200 my-2"></div>
+
+        ${item.area1 ? `
+        <div class="text-[9px] text-slate-600 leading-4 mb-4">
+
+            <div>Area 1 : ${item.area1}</div>
+            <div>Area 2 : ${item.area2}</div>
+            <div>Area 3 : ${item.area3}</div>
+            <div>Area 4 : ${item.area4}</div>
+
+        </div>
+        ` : ''}
+
+    </div>
+
+    <div class="flex items-end justify-between gap-1">
+
+        <div>
+            <p class="text-[10px] text-slate-500 mb-0.5 font-medium">
+                Stok
+            </p>
+
+            <div class="flex items-baseline">
+                <span
+                    id="${stockId}"
+                    class="text-2xl md:text-4xl font-bold ${color}"
+                    style="font-family: 'Space Grotesk'"
+                >
+                    ${stock}
+                </span>
+            </div>
+        </div>
+
+        <div
+            id="${statusId}"
+            class="px-2 py-1 rounded text-[9px] font-bold tracking-wider ${badge}"
+        >
+            ${statusLabel}
+        </div>
+
+    </div>
+
+</div>
+`;
                     grid.insertAdjacentHTML('beforeend', html);
                 }
             });
