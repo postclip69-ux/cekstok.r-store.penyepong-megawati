@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         // DETAIL AREA XLA
         // ==========================
 
-        const detailMap = {};
+        const detailMapXla = {};
 
         if (productData.ok && Array.isArray(productData.data)) {
 
@@ -77,7 +77,7 @@ export default async function handler(req, res) {
                 .filter(item => item.kode_produk.startsWith('XLA'))
                 .forEach(item => {
 
-                    detailMap[item.kode_produk] =
+                    detailMapXla[item.kode_produk] =
                         parseArea(item.deskripsi);
 
                 });
@@ -85,7 +85,37 @@ export default async function handler(req, res) {
         }
 
         // ==========================
-        // GABUNGKAN STOK + DETAIL
+        // DETAIL AREA XDA
+        // ==========================
+
+        const detailMapXda = {};
+
+        if (productData.ok && Array.isArray(productData.data)) {
+
+            productData.data
+                .filter(item => item.kode_produk.startsWith('XDA'))
+                .forEach(item => {
+
+                    detailMapXda[item.kode_produk] =
+                        parseArea(item.deskripsi);
+
+                });
+
+        }
+
+        // ==========================
+        // FIX DATA XDA76
+        // ==========================
+
+        detailMapXda['XDA76'] = {
+            area1: '76 GB',
+            area2: '78 GB',
+            area3: '83 GB',
+            area4: '93 GB'
+        };
+
+        // ==========================
+        // GABUNGKAN XLA
         // ==========================
 
         let xlaData = [];
@@ -96,66 +126,43 @@ export default async function handler(req, res) {
 
                 ...item,
 
-                area1: detailMap[item.type]?.area1 || '',
-                area2: detailMap[item.type]?.area2 || '',
-                area3: detailMap[item.type]?.area3 || '',
-                area4: detailMap[item.type]?.area4 || ''
+                area1: detailMapXla[item.type]?.area1 || '',
+                area2: detailMapXla[item.type]?.area2 || '',
+                area3: detailMapXla[item.type]?.area3 || '',
+                area4: detailMapXla[item.type]?.area4 || ''
 
-                // Perbaikan data yang kosong dari KHFY
-detailMapXda['XDA76'] = {
-    area1: '76 GB',
-    area2: '78 GB',
-    area3: '83 GB',
-    area4: '93 GB'
-};
             }));
 
         }
 
         // ==========================
-// DETAIL AREA XDA
-// ==========================
+        // GABUNGKAN XDA
+        // ==========================
 
-const detailMapXda = {};
+        let xdaData = [];
 
-if (productData.ok && Array.isArray(productData.data)) {
+        if (Array.isArray(dataXda)) {
 
-    productData.data
-        .filter(item => item.kode_produk.startsWith('XDA'))
-        .forEach(item => {
+            xdaData = dataXda.map(item => ({
 
-            detailMapXda[item.kode_produk] =
-                parseArea(item.deskripsi);
-            
+                type: 'Reguler',
 
-        });
+                nama: item.config,
 
-}
+                sisa_slot: item.count.toString(),
 
-// ==========================
-// XDA
-// ==========================
+                area1: detailMapXda[item.config]?.area1 || '',
+                area2: detailMapXda[item.config]?.area2 || '',
+                area3: detailMapXda[item.config]?.area3 || '',
+                area4: detailMapXda[item.config]?.area4 || ''
 
-let xdaData = [];
+            }));
 
-if (Array.isArray(dataXda)) {
+        }
 
-    xdaData = dataXda.map(item => ({
-
-        type: 'Reguler',
-
-        nama: item.config,
-
-        sisa_slot: item.count.toString(),
-
-        area1: detailMapXda[item.config]?.area1 || '',
-        area2: detailMapXda[item.config]?.area2 || '',
-        area3: detailMapXda[item.config]?.area3 || '',
-        area4: detailMapXda[item.config]?.area4 || ''
-
-    }));
-
-            }
+        // ==========================
+        // RESPONSE
+        // ==========================
 
         res.status(200).json({
             ok: true,
