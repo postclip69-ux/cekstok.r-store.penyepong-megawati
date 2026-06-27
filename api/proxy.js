@@ -1,12 +1,59 @@
 // api/proxy.js
+
+function parseArea(desc = '') {
+
+    const result = {
+        area1: '',
+        area2: '',
+        area3: '',
+        area4: ''
+    };
+
+    desc.split(/\r?\n/).forEach(line => {
+
+        const clean = line
+            .replace(/~/g, '')
+            .trim();
+
+        const match = clean.match(
+            /AREA\s*(\d)\s*[:=]\s*(.+)/i
+        );
+
+        if (!match) return;
+
+        const nomor = match[1];
+        const value = match[2].trim();
+
+        result[`area${nomor}`] = value;
+
+    });
+
+    return result;
+}
+
 export default async function handler(req, res) {
-    const targetUrlAkrab = 'https://panel.khfy-store.com/api_v3/cek_stock_akrab';
-    const targetUrlXda = 'https://juraganxl.my.id/api/regulers';
-    const apiKeyXda = 'bunderkananbunderkanankirikotaksegitigaatas';
+
+    const stockUrl =
+        'https://panel.khfy-store.com/api_v3/cek_stock_akrab';
+
+    const productUrl =
+        'https://panel.khfy-store.com/api_v2/list_product?api_key=6A225EC0-2922-4252-8204-C7C00A3DA0E5';
+
+    const targetUrlXda =
+        'https://juraganxl.my.id/api/regulers';
+
+    const apiKeyXda =
+        'bunderkananbunderkanankirikotaksegitigaatas';
 
     try {
-        const [responseAkrab, responseXda] = await Promise.all([
-            fetch(targetUrlAkrab),
+
+        const [
+            stockRes,
+            productRes,
+            xdaRes
+        ] = await Promise.all([
+            fetch(stockUrl),
+            fetch(productUrl),
             fetch(targetUrlXda, {
                 headers: {
                     'x-api-key': apiKeyXda
@@ -14,28 +61,66 @@ export default async function handler(req, res) {
             })
         ]);
 
-        const dataAkrab = await responseAkrab.json();
-        const dataXda = await responseXda.json();
+        const stockData = await stockRes.json();
+        const productData = await productRes.json();
+        const dataXda = await xdaRes.json();
 
-        // 1. Data XLA
+        // ==========================
+        // DETAIL AREA XLA
+        // ==========================
+
+        const detailMap = {};
+
+        if (productData.ok && Array.isArray(productData.data)) {
+
+            productData.data
+                .filter(item => item.kode_produk.startsWith('XLA'))
+                .forEach(item => {
+
+                    detailMap[item.kode_produk] =
+                        parseArea(item.deskripsi);
+
+                });
+
+        }
+
+        // ==========================
+        // GABUNGKAN STOK + DETAIL
+        // ==========================
+
         let xlaData = [];
-        if (dataAkrab && dataAkrab.ok && Array.isArray(dataAkrab.data)) {
-            xlaData = [...dataAkrab.data];
-        } else if (Array.isArray(dataAkrab)) {
-            xlaData = [...dataAkrab];
-        }
 
-        // 2. Data XDA (Format disesuaikan)
-        let xdaData = [];
-        if (Array.isArray(dataXda)) {
-            xdaData = dataXda.map(item => ({
-                type: 'Reguler', // Label kecil di atas kartu
-                nama: item.config, // Ini jadi ID uniknya (contoh: XDA31, AL1)
-                sisa_slot: item.count.toString() 
+        if (stockData.ok && Array.isArray(stockData.data)) {
+
+            xlaData = stockData.data.map(item => ({
+
+                ...item,
+
+                area1: detailMap[item.type]?.area1 || '',
+                area2: detailMap[item.type]?.area2 || '',
+                area3: detailMap[item.type]?.area3 || '',
+                area4: detailMap[item.type]?.area4 || ''
+
             }));
+
         }
 
-        // Kirim data terpisah
+        // ==========================
+        // XDA
+        // ==========================
+
+        let xdaData = [];
+
+        if (Array.isArray(dataXda)) {
+
+            xdaData = dataXda.map(item => ({
+                type: 'Reguler',
+                nama: item.config,
+                sisa_slot: item.count.toString()
+            }));
+
+        }
+
         res.status(200).json({
             ok: true,
             xla: xlaData,
@@ -43,7 +128,13 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error("Error fetching data:", error);
-        res.status(500).json({ error: 'Gagal mengambil data dari server pusat' });
+
+        console.error(error);
+
+        res.status(500).json({
+            error: 'Gagal mengambil data dari server pusat'
+        });
+
     }
+
 }
